@@ -27,16 +27,19 @@
     </header>
 
     <!-- Project Files & Documents Section -->
-    <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl space-y-4">
+    <div class="bg-slate-800 border-2 border-indigo-500/30 rounded-xl p-6 shadow-2xl space-y-4">
       <div class="flex items-center justify-between border-b border-slate-700 pb-3">
-        <h2 class="text-lg font-bold text-white flex items-center gap-2">
-          📁 Project Artifacts & Documentation
+        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+          <span>📁</span> Project Artifacts & Documents
         </h2>
-        <span class="text-xs text-slate-400">Phase 1 & Phase 2 Downloads</span>
+        <span class="text-xs bg-indigo-500/20 text-indigo-300 font-semibold px-2.5 py-1 rounded-full border border-indigo-500/30">
+          Public Downloads
+        </span>
       </div>
 
+      <!-- Container for File Cards -->
       <div id="files-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- Files auto-rendered from JS -->
+        <!-- Rendered via JavaScript -->
       </div>
     </div>
 
@@ -93,45 +96,56 @@
     
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // --- YOUR EXACT SUPABASE STORAGE LINKS ---
+    // --- YOUR EXACT FILE LINKS ---
     const projectFiles = [
       {
         phase: "Phase 1",
         title: "Planning Document",
-        type: "DOCX / Word Document",
+        type: "DOCX / Word",
+        icon: "📄",
         url: "https://xqcyvgbbtqjphqloulfv.supabase.co/storage/v1/object/public/project-files/Phase%201/Planning%20Document/New%20Microsoft%20Word%20Document.docx"
       },
       {
         phase: "Phase 2",
         title: "Blank Survey Questionnaire",
         type: "PDF Document",
+        icon: "📋",
         url: "https://xqcyvgbbtqjphqloulfv.supabase.co/storage/v1/object/public/project-files/Phase%202/Questionaire/Survey.pdf"
       },
       {
         phase: "Phase 2",
         title: "Completed Questionnaire Responses",
         type: "CSV Dataset",
+        icon: "📊",
         url: "https://xqcyvgbbtqjphqloulfv.supabase.co/storage/v1/object/public/project-files/Phase%202/Completed%20Questionaire/CQ.csv"
       }
     ];
 
     function renderFiles() {
       const container = document.getElementById('files-list');
+      if (!container) return;
+
       container.innerHTML = projectFiles.map(file => `
-        <div class="bg-slate-900/60 border border-slate-700/70 p-4 rounded-lg flex flex-col justify-between space-y-3 hover:border-indigo-500/50 transition-colors">
-          <div>
+        <div class="bg-slate-900/80 border border-slate-700 p-4 rounded-xl flex flex-col justify-between space-y-4 hover:border-indigo-500 transition-all shadow-md">
+          <div class="space-y-2">
             <div class="flex items-center justify-between">
-              <span class="text-[10px] uppercase tracking-wider font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+              <span class="text-[10px] font-extrabold uppercase tracking-widest text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-md border border-indigo-500/20">
                 ${file.phase}
               </span>
-              <span class="text-[10px] font-mono text-slate-400">${file.type}</span>
+              <span class="text-xs font-mono text-slate-400">${file.type}</span>
             </div>
-            <h3 class="text-sm font-semibold text-white mt-2">${file.title}</h3>
+            <div class="flex items-center gap-3 pt-1">
+              <span class="text-2xl">${file.icon}</span>
+              <h3 class="text-sm font-bold text-white leading-snug">${file.title}</h3>
+            </div>
           </div>
-          <a href="${file.url}" target="_blank" rel="noopener noreferrer" 
-             class="inline-flex items-center justify-center gap-1.5 w-full py-2 px-3 text-xs font-medium text-slate-100 bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors text-center">
-             <span>View / Download</span>
-             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+          
+          <a href="${file.url}" download target="_blank" rel="noopener noreferrer" 
+             class="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 rounded-lg transition-colors text-center shadow-lg">
+             <span>Open / Download File</span>
+             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+               <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+             </svg>
           </a>
         </div>
       `).join('');
@@ -204,7 +218,7 @@
       `).join('');
     }
 
-    // Run on page load
+    // Immediate execution
     renderFiles();
     loadSurveyData();
   </script>
