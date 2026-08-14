@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Streaming & Society Survey Findings</title>
+  <title>Streaming & Society Research Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -15,7 +15,7 @@
     <header class="border-b border-slate-800 pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <div>
         <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-indigo-400">
-          Streaming & Society Survey Findings
+          Streaming & Society Research Dashboard
         </h1>
         <p class="text-slate-400 text-sm mt-1">
           Impact of streaming platforms on face-to-face interaction and media consumption
@@ -25,6 +25,20 @@
         Live Database Feed
       </span>
     </header>
+
+    <!-- Project Files & Documents Section -->
+    <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+          📁 Project Artifacts & Documentation
+        </h2>
+        <span class="text-xs text-slate-400">Phase 1 & Phase 2 Downloads</span>
+      </div>
+
+      <div id="files-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Files auto-rendered from JS -->
+      </div>
+    </div>
 
     <!-- Stat Cards Summary -->
     <div id="stats" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -79,6 +93,50 @@
     
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // --- YOUR EXACT SUPABASE STORAGE LINKS ---
+    const projectFiles = [
+      {
+        phase: "Phase 1",
+        title: "Planning Document",
+        type: "DOCX / Word Document",
+        url: "https://xqcyvgbbtqjphqloulfv.supabase.co/storage/v1/object/public/project-files/Phase%201/Planning%20Document/New%20Microsoft%20Word%20Document.docx"
+      },
+      {
+        phase: "Phase 2",
+        title: "Blank Survey Questionnaire",
+        type: "PDF Document",
+        url: "https://xqcyvgbbtqjphqloulfv.supabase.co/storage/v1/object/public/project-files/Phase%202/Questionaire/Survey.pdf"
+      },
+      {
+        phase: "Phase 2",
+        title: "Completed Questionnaire Responses",
+        type: "CSV Dataset",
+        url: "https://xqcyvgbbtqjphqloulfv.supabase.co/storage/v1/object/public/project-files/Phase%202/Completed%20Questionaire/CQ.csv"
+      }
+    ];
+
+    function renderFiles() {
+      const container = document.getElementById('files-list');
+      container.innerHTML = projectFiles.map(file => `
+        <div class="bg-slate-900/60 border border-slate-700/70 p-4 rounded-lg flex flex-col justify-between space-y-3 hover:border-indigo-500/50 transition-colors">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] uppercase tracking-wider font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+                ${file.phase}
+              </span>
+              <span class="text-[10px] font-mono text-slate-400">${file.type}</span>
+            </div>
+            <h3 class="text-sm font-semibold text-white mt-2">${file.title}</h3>
+          </div>
+          <a href="${file.url}" target="_blank" rel="noopener noreferrer" 
+             class="inline-flex items-center justify-center gap-1.5 w-full py-2 px-3 text-xs font-medium text-slate-100 bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors text-center">
+             <span>View / Download</span>
+             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+          </a>
+        </div>
+      `).join('');
+    }
+
     async function loadSurveyData() {
       const tableBody = document.getElementById('response-table');
 
@@ -110,7 +168,7 @@
       // Calculate Stats
       document.getElementById('total-count').innerText = responses.length;
       
-      const teenagers = responses.filter(r => r.age_group.includes('13')).length;
+      const teenagers = responses.filter(r => r.age_group && r.age_group.includes('13')).length;
       document.getElementById('top-demo').innerText = `Teenagers (${Math.round((teenagers/responses.length)*100)}%)`;
 
       const influenced = responses.filter(r => r.cultural_influence && !r.cultural_influence.includes('No')).length;
@@ -146,6 +204,8 @@
       `).join('');
     }
 
+    // Run on page load
+    renderFiles();
     loadSurveyData();
   </script>
 </body>
