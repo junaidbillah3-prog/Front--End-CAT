@@ -1,1 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Display Dashboard</title>
+  <!-- Tailwind CSS for quick styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase JS Client library via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-6 font-sans">
 
+  <div class="max-w-4xl mx-auto space-y-6">
+    <!-- Header -->
+    <header class="border-b border-slate-800 pb-4">
+      <h1 class="text-3xl font-bold tracking-tight text-indigo-400">Project Showcase</h1>
+      <p class="text-slate-400 text-sm mt-1">Live metrics and telemetry feed</p>
+    </header>
+
+    <!-- Content Container -->
+    <main id="app" class="grid gap-6">
+      <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 animate-pulse">
+        <p class="text-slate-400">Loading project data...</p>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // --- SUPABASE CONFIGURATION ---
+    const SUPABASE_URL = 'https://xqcyvgbbtqjphqloulfv.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_zWDBsPoepTjdg5FySSp0lw_aeBJP6TH';
+    
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Fetch and display data
+    async function loadProjectData() {
+      const app = document.getElementById('app');
+
+      const { data: projects, error } = await supabaseClient
+        .from('projects')
+        .select('*');
+
+      if (error) {
+        app.innerHTML = `
+          <div class="bg-red-900/30 border border-red-500/50 p-4 rounded-xl text-red-300">
+            <strong>Error loading data:</strong> ${error.message}
+          </div>`;
+        return;
+      }
+
+      if (!projects || projects.length === 0) {
+        app.innerHTML = `<div class="bg-slate-800 p-6 rounded-xl text-slate-400">No project data found in the database.</div>`;
+        return;
+      }
+
+      app.innerHTML = projects.map(project => {
+        // Parse custom JSON metrics if present
+        const metricsHtml = project.metrics 
+          ? Object.entries(project.metrics).map(([key, val]) => `
+              <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50">
+                <span class="text-xs uppercase text-slate-400 font-semibold block">${key}</span>
+                <span class="text-lg font-mono text-indigo-300">${val}</span>
+              </div>
+            `).join('')
+          : '';
+
+        return `
+          <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl space-y-4">
+            <div class="flex items-center justify-between">
+              <h2 class="text-2xl font-semibold text-white">${project.title}</h2>
+              <span class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                ${project.status}
+              </span>
+            </div>
+
+            <p class="text-slate-300">${project.description || ''}</p>
+
+            <!-- Progress Bar -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs text-slate-400">
+                <span>Progress</span>
+                <span>${project.progress_percent}%</span>
+              </div>
+              <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+                <div class="bg-indigo-500 h-full transition-all duration-500" style="width: ${project.progress_percent}%"></div>
+              </div>
+            </div>
+
+            <!-- Custom Data Metrics Grid -->
+            ${metricsHtml ? `
+              <div class="pt-2">
+                <h3 class="text-xs font-semibold uppercase text-slate-400 mb-2">Live Metrics</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  ${metricsHtml}
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Run on load
+    loadProjectData();
+  </script>
+</body>
+</html>
