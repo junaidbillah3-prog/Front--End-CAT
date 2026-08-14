@@ -3,106 +3,150 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Project Display Dashboard</title>
-  <!-- Tailwind CSS for quick styling -->
+  <title>Streaming & Society Survey Findings</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Supabase JS Client library via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-6 font-sans">
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 sm:p-8 font-sans">
 
-  <div class="max-w-4xl mx-auto space-y-6">
+  <div class="max-w-6xl mx-auto space-y-8">
+    
     <!-- Header -->
-    <header class="border-b border-slate-800 pb-4">
-      <h1 class="text-3xl font-bold tracking-tight text-indigo-400">Project Showcase</h1>
-      <p class="text-slate-400 text-sm mt-1">Live metrics and telemetry feed</p>
+    <header class="border-b border-slate-800 pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-indigo-400">
+          Streaming & Society Survey Findings
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">
+          Impact of streaming platforms on face-to-face interaction and media consumption
+        </p>
+      </div>
+      <span class="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+        Live Database Feed
+      </span>
     </header>
 
-    <!-- Content Container -->
-    <main id="app" class="grid gap-6">
-      <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 animate-pulse">
-        <p class="text-slate-400">Loading project data...</p>
+    <!-- Stat Cards Summary -->
+    <div id="stats" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl">
+        <span class="text-xs uppercase text-slate-400 font-bold tracking-wider">Total Responses</span>
+        <div id="total-count" class="text-3xl font-extrabold text-white mt-1">--</div>
       </div>
-    </main>
+      <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl">
+        <span class="text-xs uppercase text-slate-400 font-bold tracking-wider">Primary Demographic</span>
+        <div id="top-demo" class="text-2xl font-bold text-indigo-300 mt-1">--</div>
+      </div>
+      <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl">
+        <span class="text-xs uppercase text-slate-400 font-bold tracking-wider">Cultural Influence</span>
+        <div id="cultural-rate" class="text-2xl font-bold text-emerald-400 mt-1">--</div>
+      </div>
+    </div>
+
+    <!-- Main Table Container -->
+    <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-2xl">
+      <div class="p-4 border-b border-slate-700 bg-slate-800/80 flex justify-between items-center">
+        <h2 class="text-lg font-bold text-white">Participant Responses</h2>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-300">
+          <thead class="bg-slate-900/80 text-xs text-slate-400 uppercase tracking-wider border-b border-slate-700">
+            <tr>
+              <th class="p-4">Participant</th>
+              <th class="p-4">Age Group</th>
+              <th class="p-4">Daily Usage</th>
+              <th class="p-4">Face-to-Face Impact</th>
+              <th class="p-4">Cable TV Impact</th>
+              <th class="p-4">Cultural Insights & Perspective</th>
+            </tr>
+          </thead>
+          <tbody id="response-table" class="divide-y divide-slate-700/50">
+            <tr>
+              <td colspan="6" class="p-8 text-center text-slate-400 animate-pulse">
+                Fetching survey responses from database...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
 
   <script>
-    // --- SUPABASE CONFIGURATION ---
     const SUPABASE_URL = 'https://xqcyvgbbtqjphqloulfv.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_zWDBsPoepTjdg5FySSp0lw_aeBJP6TH';
     
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Fetch and display data
-    async function loadProjectData() {
-      const app = document.getElementById('app');
+    async function loadSurveyData() {
+      const tableBody = document.getElementById('response-table');
 
-      const { data: projects, error } = await supabaseClient
-        .from('projects')
-        .select('*');
+      const { data: responses, error } = await supabaseClient
+        .from('form_responses')
+        .select('*')
+        .order('id', { ascending: true });
 
       if (error) {
-        app.innerHTML = `
-          <div class="bg-red-900/30 border border-red-500/50 p-4 rounded-xl text-red-300">
-            <strong>Error loading data:</strong> ${error.message}
-          </div>`;
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="6" class="p-6 text-center text-red-400 bg-red-950/20">
+              Error fetching data: ${error.message}
+            </td>
+          </tr>`;
         return;
       }
 
-      if (!projects || projects.length === 0) {
-        app.innerHTML = `<div class="bg-slate-800 p-6 rounded-xl text-slate-400">No project data found in the database.</div>`;
+      if (!responses || responses.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="6" class="p-6 text-center text-slate-400">
+              No responses found in table 'form_responses'.
+            </td>
+          </tr>`;
         return;
       }
 
-      app.innerHTML = projects.map(project => {
-        // Parse custom JSON metrics if present
-        const metricsHtml = project.metrics 
-          ? Object.entries(project.metrics).map(([key, val]) => `
-              <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50">
-                <span class="text-xs uppercase text-slate-400 font-semibold block">${key}</span>
-                <span class="text-lg font-mono text-indigo-300">${val}</span>
-              </div>
-            `).join('')
-          : '';
+      // Calculate Stats
+      document.getElementById('total-count').innerText = responses.length;
+      
+      const teenagers = responses.filter(r => r.age_group.includes('13')).length;
+      document.getElementById('top-demo').innerText = `Teenagers (${Math.round((teenagers/responses.length)*100)}%)`;
 
-        return `
-          <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl space-y-4">
-            <div class="flex items-center justify-between">
-              <h2 class="text-2xl font-semibold text-white">${project.title}</h2>
-              <span class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                ${project.status}
-              </span>
-            </div>
+      const influenced = responses.filter(r => r.cultural_influence && !r.cultural_influence.includes('No')).length;
+      document.getElementById('cultural-rate').innerText = `${Math.round((influenced/responses.length)*100)}% Influenced`;
 
-            <p class="text-slate-300">${project.description || ''}</p>
-
-            <!-- Progress Bar -->
-            <div class="space-y-1">
-              <div class="flex justify-between text-xs text-slate-400">
-                <span>Progress</span>
-                <span>${project.progress_percent}%</span>
-              </div>
-              <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
-                <div class="bg-indigo-500 h-full transition-all duration-500" style="width: ${project.progress_percent}%"></div>
-              </div>
-            </div>
-
-            <!-- Custom Data Metrics Grid -->
-            ${metricsHtml ? `
-              <div class="pt-2">
-                <h3 class="text-xs font-semibold uppercase text-slate-400 mb-2">Live Metrics</h3>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  ${metricsHtml}
-                </div>
-              </div>
-            ` : ''}
-          </div>
-        `;
-      }).join('');
+      // Render Rows
+      tableBody.innerHTML = responses.map(row => `
+        <tr class="hover:bg-slate-700/30 transition-colors">
+          <td class="p-4 font-semibold text-white whitespace-nowrap">
+            ${row.full_name}
+            <span class="block text-xs font-normal text-slate-400">${row.role}</span>
+          </td>
+          <td class="p-4 whitespace-nowrap text-slate-300">${row.age_group}</td>
+          <td class="p-4 whitespace-nowrap">
+            <span class="px-2 py-1 rounded bg-slate-700 text-xs font-mono text-indigo-300">
+              ${row.daily_hours}
+            </span>
+          </td>
+          <td class="p-4 text-xs text-slate-300 max-w-xs">${row.face_to_face_impact}</td>
+          <td class="p-4 whitespace-nowrap">
+            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${
+              row.cable_tv_change === 'Completely Stopped' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
+              row.cable_tv_change === 'Decreased' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+              'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+            }">
+              ${row.cable_tv_change}
+            </span>
+          </td>
+          <td class="p-4 text-xs text-slate-300 min-w-[280px]">
+            <p class="italic text-slate-300">"${row.cultural_awareness_opinion}"</p>
+          </td>
+        </tr>
+      `).join('');
     }
 
-    // Run on load
-    loadProjectData();
+    loadSurveyData();
   </script>
 </body>
 </html>
